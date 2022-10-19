@@ -3,9 +3,9 @@
 import threading
 import time
 import cv2
+import numpy as np
 from deepface import DeepFace
 from deepface.detectors import FaceDetector
-import numpy as np
 
 
 def format_name(name: str) -> str:
@@ -26,7 +26,8 @@ def capture_video():
     return video_capture
 
 
-import ffmpeg    
+import ffmpeg
+
 
 def check_rotation(path_video_file):
     # this returns meta-data of the video file in form of a dictionary
@@ -48,11 +49,11 @@ def correct_rotation(frame, rotateCode):
     return cv2.rotate(frame, rotateCode) 
 
 
-def store_unknown_faces(frame, current_time):
+def store_known_faces(frame, current_time):
     '''Store unknown faces in a folder.
     '''
     #save current frame as unknown face
-    cv2.imwrite(f'unknown_faces/{current_time}.jpg', frame)
+    cv2.imwrite(f'known_faces/{current_time}.jpg', frame)
 
 def face_recognition(video_capture, db_path):
     '''Perform facial recognition on a video stream.
@@ -109,11 +110,11 @@ def face_recognition(video_capture, db_path):
                 face_recognized = df.iloc[0]['identity']
                 face_recognition_distance = df.iloc[0]['VGG-Face_cosine']
             face_recognized = format_name(face_recognized)+f' Similarity_Distance:{face_recognition_distance:.3f}'
-            if face_recognition_distance > 0.2:
+            if face_recognition_distance < 0.2:
                 face_recognized = 'Unknown '+current_time
                 #create a thread for storing unknown faces
                 #Uncomment the following line to store unknown faces
-                threading.Thread(target=store_unknown_faces, args=(frame.copy(),current_time)).start()
+                #threading.Thread(target=store_known_faces, args=(frame.copy(),current_time)).start()
                 #set bounding box color to red
                 color = (0, 0, 255)
             else:
@@ -129,6 +130,7 @@ def face_recognition(video_capture, db_path):
             #Display time at top middle of screen
             cv2.putText(frame, current_time, (int(frame.shape[1]/2)-30, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1, cv2.LINE_AA)
             cv2.putText(frame, face_recognized, (x,y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+            threading.Thread(target=store_known_faces, args=(frame.copy(),current_time)).start()
             print(f'hello'+face_recognized)
 
         print('hello')
