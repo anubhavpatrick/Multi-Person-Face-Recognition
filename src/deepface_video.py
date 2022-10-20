@@ -60,8 +60,9 @@ def face_recognition(video_capture, db_path):
             #print(imgs)
 
             # Perform facial recognition
-            df = DeepFace.find(imgs, db_path = "train/", silent=True, enforce_detection=False, prog_bar=False)
-
+            df = DeepFace.find(imgs, db_path = "Abesit Students/Individual images of students/", silent=True, enforce_detection=False, prog_bar=False)
+            #print(df)
+            #print(df.iloc[0]['identity'])
         
         for i in range(len(obj)):
             # Do facial recognition on each face
@@ -72,7 +73,8 @@ def face_recognition(video_capture, db_path):
             #check if df is list
             if isinstance(df, list):
                 #get the name of the person
-                face_recognized = df[i].iloc[0]['identity']
+                face_recognized = df[i].iloc[0]['identity']              #.astype(str).split())[-2]
+                #print(face_recognized)
                 face_recognition_distance = df[i].iloc[0]['VGG-Face_cosine']
             else:
                 face_recognized = df.iloc[0]['identity']
@@ -116,7 +118,7 @@ def main():
     video_capture = capture_video()
 
     # Perform facial recognition
-    face_recognition(video_capture, "train/")
+    face_recognition(video_capture, "Abesit Students/Individual images of students/")
 
     # Release video capture
     video_capture.release()
