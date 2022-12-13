@@ -39,13 +39,13 @@ def store_unknown_faces(frame, current_time):
     cv2.imwrite(f'unknown_faces/{current_time}.jpg', frame)
 
 
-def face_recognition_single_frame(frame, db_path):
+def face_recognition_single_frame(frame, db_path="dataset/train/"):
     '''Perform facial recognition on a single frame.
     '''
     # Perform facial recognition
-    detector_name = "ssd" # "opencv" or "ssd"
+    detector_name = "ssd" #set opencv, ssd, dlib, mtcnn or retinaface
 
-    detector = FaceDetector.build_model(detector_name) #set opencv, ssd, dlib, mtcnn or retinaface
+    detector = FaceDetector.build_model(detector_name) 
 
     # detect all the faces that are present in the frame
     obj = FaceDetector.detect_faces(detector, detector_name, frame, align=True)
@@ -103,12 +103,12 @@ def face_recognition_single_frame(frame, db_path):
         w = obj[i][1][2]; h = obj[i][1][3]
         
         # draw bounding box on each face detected
-        cv2.rectangle(frame, (x,y), (x+w,y+h), color, 2) #draw rectangle to main image
+        cv2.rectangle(frame, (x,y), (x+w,y+h), color, 2) #draw rectangle on main image
         
         #write name of person above bounding box
         cv2.putText(frame, face_recognized, (x,y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-        return frame
+    return frame
 
 
 def face_recognition(video_capture, db_path):
@@ -119,11 +119,14 @@ def face_recognition(video_capture, db_path):
 
         # Capture frame-by-frame
         ret, frame = video_capture.read() #here ret is a boolean value which is true if the frame is available
-        
+
         #if frame is available
         if ret:
             # Perform facial recognition on a single frame
             frame = face_recognition_single_frame(frame, db_path)
+            
+            print(type(frame))
+            print(frame.shape)
 
             # Display the resulting frame
             cv2.imshow('Face Detection', frame)

@@ -4,6 +4,7 @@ to the server using the MediaRecorder() method. The video is then processed usin
 library at the server back and the processed frames are sent back.
 ''' 
 
+import sys
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 import time
@@ -14,6 +15,9 @@ import numpy as np
 
 #Reference - https://python-engineio.readthedocs.io/en/latest/intro.html
 from engineio.payload import Payload 
+
+# To-do
+from deepface_video import face_recognition_single_frame
 
 # to limit the size of the packets sent to the client
 Payload.max_decode_packets = 2048
@@ -48,7 +52,7 @@ def readb64(base64_string):
     pimg = Image.open(sbuf)
 
     # Convert the image from RGB to BGR
-    return cv2.cvtColor(np.array(pimg), cv2.COLOR_RGB2BGR)
+    return cv2.cvtColor(np.array(pimg),cv2.COLOR_RGB2BGR)
 
 
 def moving_average(x):
@@ -73,6 +77,10 @@ def image(data_image):
     recv_time = time.time()
     text  =  'FPS: '+str(fps)
     frame = (readb64(data_image))
+
+    #print(f'Frame shape before recognition: {frame.shape}')
+    imgencode = face_recognition_single_frame(frame)
+    #print(f'Frame shape after recognition: {imgencode.shape}')
 
     imgencode = cv2.imencode('.jpeg', frame,[cv2.IMWRITE_JPEG_QUALITY,40])[1]
 
