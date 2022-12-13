@@ -42,6 +42,7 @@ def store_unknown_faces(frame, current_time):
 def face_recognition(video_capture, db_path):
     '''Perform facial recognition on a video stream.
     '''
+    # Loop through video stream
     while True:
 
         # Capture frame-by-frame
