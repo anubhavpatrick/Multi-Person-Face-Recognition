@@ -17,13 +17,18 @@ def format_name(name: str) -> str:
 
 
 def capture_video():
-    '''Capture a video stream and return it.
+    '''Capture a video stream from webcam and return it.
     '''
     # Capture video from webcam
     video_capture = cv2.VideoCapture(0)
     
+    #print the current fps
+    print(video_capture.get(cv2.CAP_PROP_FPS))
+
     #reduce fps
-    video_capture.set(cv2.CAP_PROP_FPS, 5)
+    #Next statement not working
+    #video_capture.set(cv2.CAP_PROP_FPS, 5)
+
     return video_capture
 
 
