@@ -48,7 +48,7 @@ def face_recognition_single_frame(frame, db_path="dataset/train/"):
     detector = FaceDetector.build_model(detector_name) 
 
     # detect all the faces that are present in the frame
-    obj = FaceDetector.detect_faces(detector, detector_name, frame, align=True)
+    obj = FaceDetector.detect_faces(detector, detector_name, frame, align=False)
 
     # face_recognized will store the name of the person
     face_recognized = ''
