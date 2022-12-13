@@ -1,7 +1,10 @@
 ''' A module to read frames from directory and create video'''
 
-import cv2
+
 import os
+
+import cv2
+
 
 def create_video_from_pics(pathIn, pathOut, fps):
     frame_array = []

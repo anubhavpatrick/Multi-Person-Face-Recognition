@@ -1,12 +1,12 @@
 #A python module to capture a video stream, detect faces and store them in folder
 
+import random
 import threading
 import time
 import cv2
+import ffmpeg
 from deepface import DeepFace
 from deepface.detectors import FaceDetector
-import ffmpeg  
-import random
 
 
 def capture_video(video_path):

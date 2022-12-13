@@ -2,18 +2,19 @@
 
 import threading
 import time
+
 import cv2
 from deepface import DeepFace
 from deepface.detectors import FaceDetector
-import numpy as np
 
 
 def format_name(name: str) -> str:
     '''Format name to be displayed on video frame
     '''
-    name = name.split('/', maxsplit=1)[1]
-    name = name.split('/')[0]
+    #remove directory path from name
+    name = (name.rsplit('/', maxsplit=1))[1]
     return name
+
 
 def capture_video():
     '''Capture a video stream and return it.
@@ -31,6 +32,7 @@ def store_unknown_faces(frame, current_time):
     '''
     #save current frame as unknown face
     cv2.imwrite(f'unknown_faces/{current_time}.jpg', frame)
+
 
 def face_recognition(video_capture, db_path):
     '''Perform facial recognition on a video stream.
@@ -60,7 +62,7 @@ def face_recognition(video_capture, db_path):
             #print(imgs)
 
             # Perform facial recognition
-            df = DeepFace.find(imgs, db_path = "train/", silent=True, enforce_detection=False, prog_bar=False)
+            df = DeepFace.find(imgs, db_path = db_path, silent=True, enforce_detection=False, prog_bar=False)
 
         
         for i in range(len(obj)):
@@ -116,7 +118,7 @@ def main():
     video_capture = capture_video()
 
     # Perform facial recognition
-    face_recognition(video_capture, "train/")
+    face_recognition(video_capture, "dataset/train/")
 
     # Release video capture
     video_capture.release()
