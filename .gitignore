@@ -130,3 +130,6 @@ dmypy.json
 
 #ignoring virtual environment
 virtual-env/
+
+#ignore dataset folder
+dataset/
