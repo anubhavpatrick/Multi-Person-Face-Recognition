@@ -11,16 +11,17 @@ import io
 from PIL import Image
 import base64,cv2
 import numpy as np
-from flask_cors import CORS,cross_origin
-import imutils
-from engineio.payload import Payload
 
+#Reference - https://python-engineio.readthedocs.io/en/latest/intro.html
+from engineio.payload import Payload 
 
+# to limit the size of the packets sent to the client
 Payload.max_decode_packets = 2048
 
 app = Flask(__name__)
-socketio = SocketIO(app,cors_allowed_origins='*' )
 
+#Reference - https://flask-socketio.readthedocs.io/en/latest/
+socketio = SocketIO(app,cors_allowed_origins='*' )
 
 
 @app.route('/', methods=['POST', 'GET'])
@@ -29,24 +30,34 @@ def index():
 
 
 def readb64(base64_string):
+    '''
+    This function converts the base64 string to an image'''
+
+    #Reference - https://stackoverflow.com/questions/33754935/convert-base64-string-to-image
     idx = base64_string.find('base64,')
+    # Extract the base64 string
     base64_string  = base64_string[idx+7:]
 
+    # Create an in-memory buffer to hold the image
     sbuf = io.BytesIO()
 
+    # Write the image to the buffer
     sbuf.write(base64.b64decode(base64_string, ' /'))
+    
+    # Opens the image from the buffer
     pimg = Image.open(sbuf)
 
-
+    # Convert the image from RGB to BGR
     return cv2.cvtColor(np.array(pimg), cv2.COLOR_RGB2BGR)
 
+
 def moving_average(x):
+    '''This function calculates the moving average of the last 30 frames'''
     return np.mean(x)
 
 
 @socketio.on('catch-frame')
 def catch_frame(data):
-
     emit('response_back', data)  
 
 
