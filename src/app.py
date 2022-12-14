@@ -17,7 +17,7 @@ import numpy as np
 from engineio.payload import Payload 
 
 # To-do
-from deepface_video import face_recognition_single_frame
+from deepface_video import face_recognition_single_frame, create_model_weights
 
 # to limit the size of the packets sent to the client
 Payload.max_decode_packets = 2048
@@ -46,7 +46,7 @@ def readb64(base64_string):
     sbuf = io.BytesIO()
 
     # Write the image to the buffer
-    sbuf.write(base64.b64decode(base64_string, ' /'))
+    sbuf.write(base64.b64decode(base64_string))#, ' /'))
     
     # Opens the image from the buffer
     pimg = Image.open(sbuf)
@@ -73,14 +73,15 @@ fps_array=[0]
 
 @socketio.on('image')
 def image(data_image):
-    global fps,cnt, prev_recv_time,fps_array
+    global fps,cnt, prev_recv_time,fps_array, detector
     recv_time = time.time()
     text  =  'FPS: '+str(fps)
     frame = (readb64(data_image))
 
     #print(f'Frame shape before recognition: {frame.shape}')
-    imgencode = face_recognition_single_frame(frame)
-    #print(f'Frame shape after recognition: {imgencode.shape}')
+    print(f'Frame shape - {frame.shape}')
+    imgencode = face_recognition_single_frame(frame, detector)
+    print(f'Frame shape after recognition: {imgencode.shape}')
 
     imgencode = cv2.imencode('.jpeg', imgencode,[cv2.IMWRITE_JPEG_QUALITY,40])[1]
 
@@ -102,6 +103,20 @@ def image(data_image):
         fps_array=[fps]
         cnt=0
     
+#create global var
+detector = None
 
 if __name__ == '__main__':
-    socketio.run(app,host='0.0.0.0',port=9990 ,debug=True)
+    
+    #create_model_weights()
+    from deepface.detectors import FaceDetector
+    detector_name = "mtcnn" #set opencv, ssd, dlib, mtcnn or retinaface
+    
+    detector = FaceDetector.build_model(detector_name) 
+
+    #read jpeg image as numpy array
+    img = cv2.imread("dataset/train/pics/Drishti/IMG20221013122610.jpg")
+
+    # detect all the faces that are present in the frame
+    obj = FaceDetector.detect_faces(detector, detector_name, img , align=False)
+    socketio.run(app,host='0.0.0.0',port=9999 ,debug=True)

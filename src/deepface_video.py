@@ -39,12 +39,17 @@ def store_unknown_faces(frame, current_time):
     cv2.imwrite(f'unknown_faces/{current_time}.jpg', frame)
 
 
-def face_recognition_single_frame(frame, db_path="dataset/train/"):
+def create_model_weights():
+    '''Create model weights for facial recognition.
+    '''
+    DeepFace.find("dataset/train/pics/Drishti/IMG20221013122610.jpg", model_name="VGG-Face", db_path = "dataset/train/pics/", silent=True, enforce_detection=False, prog_bar=False)
+
+
+def face_recognition_single_frame(frame, detector, db_path="dataset/train/pics/"):
     '''Perform facial recognition on a single frame.
     '''
-
     # Perform facial recognition
-    detector_name = "ssd" #set opencv, ssd, dlib, mtcnn or retinaface
+    detector_name = "mtcnn" #set opencv, ssd, dlib, mtcnn or retinaface
 
     detector = FaceDetector.build_model(detector_name) 
 
@@ -58,17 +63,17 @@ def face_recognition_single_frame(frame, db_path="dataset/train/"):
     if len(obj) > 0:
         
         #add the first face to the list
-        imgs = [obj[0][0]]
+        faces = [obj[0][0]]
 
         #add the rest of the faces to the list
         for i in range(1, len(obj)):
-            imgs.append(obj[i][0])
+            faces.append(obj[i][0])
 
-        recognizer_model = "DeepFace" #set VGG-Face, Facenet, OpenFace, DeepFace, DeepID, Dlib, ArcFace or AgeNet
+        recognizer_model = "VGG-Face" #set VGG-Face, Facenet, OpenFace, DeepFace, DeepID, Dlib, ArcFace or AgeNet
 
         # Perform facial recognition by passing detected faces
         # find() will return a dataframe with the name of the person and the similarity distance
-        recognized_faces_df = DeepFace.find(imgs,  model_name=recognizer_model, db_path = db_path, silent=True, enforce_detection=False, prog_bar=False)
+        recognized_faces_df = DeepFace.find(faces, model_name=recognizer_model, db_path = db_path, silent=True, enforce_detection=False, prog_bar=False)
     
     #Display time at top middle of screen
     current_time = time.strftime("%H:%M:%S", time.localtime())
@@ -85,7 +90,7 @@ def face_recognition_single_frame(frame, db_path="dataset/train/"):
         else: #else recognized_faces_df is just a single dataframe
             face_recognized = recognized_faces_df.iloc[0]['identity']
             face_recognition_distance = recognized_faces_df.iloc[0]['VGG-Face_cosine']
-        
+
         # Get the formatted name to be displayed on video frame
         face_recognized = format_name(face_recognized)+f' Similarity_Distance:{face_recognition_distance:.3f}'
         
