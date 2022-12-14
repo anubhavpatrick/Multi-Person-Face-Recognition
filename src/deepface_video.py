@@ -1,6 +1,6 @@
 #A python module to capture a video stream and perform facial recognition on it.
 
-import threading
+#import threading
 import time
 
 import cv2
@@ -42,6 +42,7 @@ def store_unknown_faces(frame, current_time):
 def face_recognition_single_frame(frame, db_path="dataset/train/"):
     '''Perform facial recognition on a single frame.
     '''
+
     # Perform facial recognition
     detector_name = "ssd" #set opencv, ssd, dlib, mtcnn or retinaface
 
@@ -63,9 +64,11 @@ def face_recognition_single_frame(frame, db_path="dataset/train/"):
         for i in range(1, len(obj)):
             imgs.append(obj[i][0])
 
+        recognizer_model = "DeepFace" #set VGG-Face, Facenet, OpenFace, DeepFace, DeepID, Dlib, ArcFace or AgeNet
+
         # Perform facial recognition by passing detected faces
         # find() will return a dataframe with the name of the person and the similarity distance
-        recognized_faces_df = DeepFace.find(imgs, db_path = db_path, silent=True, enforce_detection=False, prog_bar=False)
+        recognized_faces_df = DeepFace.find(imgs,  model_name=recognizer_model, db_path = db_path, silent=True, enforce_detection=False, prog_bar=False)
     
     #Display time at top middle of screen
     current_time = time.strftime("%H:%M:%S", time.localtime())
