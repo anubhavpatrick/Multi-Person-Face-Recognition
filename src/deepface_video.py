@@ -39,10 +39,17 @@ def store_unknown_faces(frame, current_time):
     cv2.imwrite(f'unknown_faces/{current_time}.jpg', frame)
 
 
-def create_model_weights():
-    '''Create model weights for facial recognition.
+def create_detector_embeddings(custom_detector="mtcnn"):
+    '''Create embedding for detector
     '''
-    DeepFace.find("dataset/train/pics/Drishti/IMG20221013122610.jpg", model_name="VGG-Face", db_path = "dataset/train/pics/", silent=True, enforce_detection=False, prog_bar=False)
+    #Following code is required to create embedding for mtcnn
+    from deepface.detectors import FaceDetector
+    detector_name = custom_detector #set opencv, ssd, dlib, mtcnn or retinaface
+    detector = FaceDetector.build_model(detector_name) 
+    #read jpeg image as numpy array
+    img = cv2.imread("dataset/test.jpg")
+    # detect all the faces that are present in the frame
+    _ = FaceDetector.detect_faces(detector, detector_name, img , align=False)
 
 
 def face_recognition_single_frame(frame, detector, db_path="dataset/train/pics/"):

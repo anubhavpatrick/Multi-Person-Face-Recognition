@@ -17,7 +17,7 @@ import numpy as np
 from engineio.payload import Payload 
 
 # To-do
-from deepface_video import face_recognition_single_frame, create_model_weights
+from deepface_video import face_recognition_single_frame, create_detector_embeddings
 
 # to limit the size of the packets sent to the client
 Payload.max_decode_packets = 2048
@@ -70,6 +70,7 @@ fps=30
 prev_recv_time = 0
 cnt=0
 fps_array=[0]
+detector = "mtcnn"
 
 @socketio.on('image')
 def image(data_image):
@@ -102,21 +103,22 @@ def image(data_image):
     if cnt==30:
         fps_array=[fps]
         cnt=0
-    
-#create global var
-detector = None
+
 
 if __name__ == '__main__':
     
-    #create_model_weights()
-    from deepface.detectors import FaceDetector
-    detector_name = "mtcnn" #set opencv, ssd, dlib, mtcnn or retinaface
-    
-    detector = FaceDetector.build_model(detector_name) 
+    #Following code is required to generate detector embedding
+    detector = "mtcnn"
+    create_detector_embeddings(detector)
 
-    #read jpeg image as numpy array
-    img = cv2.imread("dataset/train/pics/Drishti/IMG20221013122610.jpg")
+    #Code for addressing Tensorflow bug. Uncomment when running on GPUs
+    #Reference - https://stackoverflow.com/questions/61021287/tf-2-could-not-create-cudnn-handle-cudnn-status-internal-error
+    import tensorflow as tf
+    physical_devices = tf.config.list_physical_devices('GPU')
+    if len(physical_devices) > 0:
+        config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+    else:
+        print("Not enough GPU hardware devices available. Code will run on CPU")
 
-    # detect all the faces that are present in the frame
-    obj = FaceDetector.detect_faces(detector, detector_name, img , align=False)
-    socketio.run(app,host='0.0.0.0',port=9999 ,debug=True)
+    #Run the app
+    socketio.run(app,host='0.0.0.0',port=9990 ,debug=True)
