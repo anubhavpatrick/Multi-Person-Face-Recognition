@@ -88,7 +88,11 @@ def image(data_image):
 
     #print(f'Frame shape before recognition: {frame.shape}')
     print(f'Frame shape - {frame.shape}')
-    imgencode = face_recognition_single_frame(frame, detector)
+    if fps > 6:
+        imgencode = face_recognition_single_frame(frame, detector)
+    else:
+        imgencode = frame
+        
     print(f'Frame shape after recognition: {imgencode.shape}')
 
     imgencode = cv2.imencode('.jpeg', imgencode,[cv2.IMWRITE_JPEG_QUALITY,100])[1]
