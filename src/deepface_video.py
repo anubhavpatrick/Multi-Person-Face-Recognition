@@ -7,12 +7,16 @@ import cv2
 from deepface import DeepFace
 from deepface.detectors import FaceDetector
 
+    
+#create an empty set containing all faces recognized
+all_faces_recognized = set() #global variable
+
 
 def format_name(name: str) -> str:
     '''Format name to be displayed on video frame
     '''
     #remove directory path from name
-    name = (name.rsplit('/', maxsplit=1))[1]
+    name = (name.rsplit('/', maxsplit=2))[1]
     return name
 
 
@@ -65,7 +69,10 @@ def face_recognition_single_frame(frame, detector, db_path="dataset/train/pics/"
 
     # face_recognized will store the name of the person
     face_recognized = ''
-    
+
+    # all_faces_recognized is a global var containing all the faces recognized
+    global all_faces_recognized
+
     # if there is at least one face in the frame
     if len(obj) > 0:
         
@@ -99,6 +106,10 @@ def face_recognition_single_frame(frame, detector, db_path="dataset/train/pics/"
             face_recognition_distance = recognized_faces_df.iloc[0]['VGG-Face_cosine']
 
         # Get the formatted name to be displayed on video frame
+        # Get the name of the person in correct format
+        face_recognized = format_name(face_recognized)
+        #add the name of the person to the set
+        all_faces_recognized.add(face_recognized)
         face_recognized = format_name(face_recognized)+f' Similarity_Distance:{face_recognition_distance:.3f}'
         
         if face_recognition_distance > 0.2:

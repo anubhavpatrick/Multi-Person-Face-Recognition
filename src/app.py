@@ -4,7 +4,6 @@ to the server using the MediaRecorder() method. The video is then processed usin
 library at the server back and the processed frames are sent back.
 ''' 
 
-import sys
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 import time
@@ -16,8 +15,11 @@ import numpy as np
 #Reference - https://python-engineio.readthedocs.io/en/latest/intro.html
 from engineio.payload import Payload 
 
-# To-do
+# import methods from deepface_video.py
 from deepface_video import face_recognition_single_frame, create_detector_embeddings
+
+# import all_faces_recognized from deepface_video.py
+from deepface_video import all_faces_recognized
 
 # to limit the size of the packets sent to the client
 Payload.max_decode_packets = 2048
@@ -103,6 +105,9 @@ def image(data_image):
     if cnt==30:
         fps_array=[fps]
         cnt=0
+    
+    print(f'FPS: {fps}')
+    print(all_faces_recognized)
 
 
 if __name__ == '__main__':
@@ -113,12 +118,11 @@ if __name__ == '__main__':
     physical_devices = tf.config.list_physical_devices('GPU')
     if len(physical_devices) > 0:
         config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
-        print("-----\n Available GPUs: {len(physical_devices)}\n-----")
+        print(f"-----\n Available GPUs: {len(physical_devices)}\n-----")
     else:
         print("-----\nNot enough GPU hardware devices available. Code will run on CPU\n-----")
 
     #Following code is required to generate detector embedding
-    detector = "mtcnn"
     create_detector_embeddings(detector)
 
     #Run the app
