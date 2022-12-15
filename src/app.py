@@ -118,7 +118,7 @@ if __name__ == '__main__':
     if len(physical_devices) > 0:
         config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
     else:
-        print("Not enough GPU hardware devices available. Code will run on CPU")
+        print("-----\nNot enough GPU hardware devices available. Code will run on CPU\n-----")
 
     #Run the app
     socketio.run(app,host='0.0.0.0',port=9990 ,debug=True)
