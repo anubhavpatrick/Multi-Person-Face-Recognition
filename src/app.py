@@ -91,7 +91,7 @@ def image(data_image):
     imgencode = face_recognition_single_frame(frame, detector)
     print(f'Frame shape after recognition: {imgencode.shape}')
 
-    imgencode = cv2.imencode('.jpeg', imgencode,[cv2.IMWRITE_JPEG_QUALITY,40])[1]
+    imgencode = cv2.imencode('.jpeg', imgencode,[cv2.IMWRITE_JPEG_QUALITY,100])[1]
 
     # base64 encode
     stringData = base64.b64encode(imgencode).decode('utf-8')
