@@ -86,15 +86,12 @@ def image(data_image):
     text  =  'FPS: '+str(fps)
     frame = (readb64(data_image))
 
-    #print(f'Frame shape before recognition: {frame.shape}')
-    print(f'Frame shape - {frame.shape}')
-    if fps > 6:
+    #maintain fps
+    if fps > 3:
         imgencode = face_recognition_single_frame(frame, detector)
     else:
         imgencode = frame
         
-    print(f'Frame shape after recognition: {imgencode.shape}')
-
     imgencode = cv2.imencode('.jpeg', imgencode,[cv2.IMWRITE_JPEG_QUALITY,100])[1]
 
     # base64 encode
@@ -118,7 +115,7 @@ def image(data_image):
         thread = Thread(target=write_to_file, args=(all_faces_recognized,))
         thread.start()
     
-    print(f'FPS: {fps}')
+    print(f'{text}')
     print(all_faces_recognized)
 
 
