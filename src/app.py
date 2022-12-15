@@ -107,18 +107,19 @@ def image(data_image):
 
 if __name__ == '__main__':
     
-    #Following code is required to generate detector embedding
-    detector = "mtcnn"
-    create_detector_embeddings(detector)
-
     #Code for addressing Tensorflow bug. Uncomment when running on GPUs
     #Reference - https://stackoverflow.com/questions/61021287/tf-2-could-not-create-cudnn-handle-cudnn-status-internal-error
     import tensorflow as tf
     physical_devices = tf.config.list_physical_devices('GPU')
     if len(physical_devices) > 0:
         config = tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        print("-----\n Available GPUs: {len(physical_devices)}\n-----")
     else:
         print("-----\nNot enough GPU hardware devices available. Code will run on CPU\n-----")
+
+    #Following code is required to generate detector embedding
+    detector = "mtcnn"
+    create_detector_embeddings(detector)
 
     #Run the app
     socketio.run(app,host='0.0.0.0',port=9990 ,debug=True)
