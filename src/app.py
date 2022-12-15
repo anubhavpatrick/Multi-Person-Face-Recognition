@@ -76,48 +76,55 @@ fps=3 #30
 prev_recv_time = 0
 cnt=0
 fps_array=[0]
-detector_name = "mtcnn"
+detector_name = "opencv"
 
 
-@socketio.on('image')
 def image(data_image):
     global fps,cnt, prev_recv_time,fps_array, detector_name
     recv_time = time.time()
     text  =  'FPS: '+str(fps)
     frame = (readb64(data_image))
-
+    imgencode = frame
     #maintain fps
-    if fps > 3:
+    if cnt == 5:
+        all_faces_recognized.clear()
         imgencode = face_recognition_single_frame(frame, detector_name)
-    else:
+        #create new thread to process the frame
+        #t = Thread(target=face_recognition_single_frame, args=(frame))
+        #t.start()
+        #imgencode = frame
+        pass
+    if fps > 2:
         #build detector model
         detector = build_detector_model(detector_name)
         # detect all the faces that are present in the frame
         obj = face_detection(frame, detector, detector_name)
+        print(f'Num of faces detected: {len(obj)}')
         plot_detected_faces(obj, frame)
-        
+
         #if all faces are recognized, then display the text
         if all_faces_recognized:
             cv2.putText(frame, str(all_faces_recognized), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1, cv2.LINE_AA)
         imgencode = frame
-        
+
     imgencode = cv2.imencode('.jpeg', imgencode,[cv2.IMWRITE_JPEG_QUALITY,100])[1]
 
-    # base64 encode
+        # base64 encode
+
     stringData = base64.b64encode(imgencode).decode('utf-8')
     b64_src = 'data:image/jpeg;base64,'
     stringData = b64_src + stringData
 
     # emit the frame back
     emit('response_back', stringData)
-    
+
     fps = 1/(recv_time - prev_recv_time)
     fps_array.append(fps)
     fps = round(moving_average(np.array(fps_array)),1)
     prev_recv_time = recv_time
     #print(fps_array)
     cnt+=1
-    if cnt==5: #30:
+    if cnt==6: #30:
         fps_array=[fps]
         cnt=0
         # create a separate thread to write the all_faces_recognized to a file
