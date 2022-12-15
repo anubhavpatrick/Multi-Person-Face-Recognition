@@ -110,7 +110,7 @@ def face_recognition_single_frame(frame, detector, db_path="dataset/train/pics/"
         face_recognized = format_name(face_recognized)
         #add the name of the person to the set
         all_faces_recognized.add(face_recognized)
-        face_recognized = format_name(face_recognized)+f' Similarity_Distance:{face_recognition_distance:.3f}'
+        face_recognized = face_recognized+f' Similarity_Distance:{face_recognition_distance:.3f}'
         
         if face_recognition_distance > 0.2:
             face_recognized = 'Unknown'

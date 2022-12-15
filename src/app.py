@@ -4,6 +4,7 @@ to the server using the MediaRecorder() method. The video is then processed usin
 library at the server back and the processed frames are sent back.
 ''' 
 
+from threading import Thread
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 import time
@@ -20,6 +21,9 @@ from deepface_video import face_recognition_single_frame, create_detector_embedd
 
 # import all_faces_recognized from deepface_video.py
 from deepface_video import all_faces_recognized
+
+# import methods from generic_utilities.py
+from util.generic_utilities import write_to_file
 
 # to limit the size of the packets sent to the client
 Payload.max_decode_packets = 2048
@@ -74,6 +78,7 @@ cnt=0
 fps_array=[0]
 detector = "mtcnn"
 
+
 @socketio.on('image')
 def image(data_image):
     global fps,cnt, prev_recv_time,fps_array, detector
@@ -105,6 +110,9 @@ def image(data_image):
     if cnt==30:
         fps_array=[fps]
         cnt=0
+        # create a separate thread to write the all_faces_recognized to a file
+        thread = Thread(target=write_to_file, args=(all_faces_recognized,))
+        thread.start()
     
     print(f'FPS: {fps}')
     print(all_faces_recognized)
