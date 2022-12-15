@@ -78,7 +78,7 @@ cnt=0
 fps_array=[0]
 detector_name = "opencv"
 
-
+@socketio.on('image')
 def image(data_image):
     global fps,cnt, prev_recv_time,fps_array, detector_name
     recv_time = time.time()
