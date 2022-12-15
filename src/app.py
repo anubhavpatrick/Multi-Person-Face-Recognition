@@ -4,6 +4,7 @@ to the server using the MediaRecorder() method. The video is then processed usin
 library at the server back and the processed frames are sent back.
 ''' 
 
+import random
 from threading import Thread
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
@@ -77,64 +78,58 @@ prev_recv_time = 0
 cnt=0
 fps_array=[0]
 detector_name = "opencv"
+frames = []
+frames_processed = []
+
+
+def face_recognition():
+    '''This function performs the face recognition on the frames received from the client'''
+    
+    while True:
+        if len(frames) > 0:
+            frame = frames.pop(0)
+            # Reference -
+            frame_processed = face_recognition_single_frame(frame, detector_name)
+
+            frames_processed.append(frame_processed)
+
 
 @socketio.on('image')
 def image(data_image):
     global fps,cnt, prev_recv_time,fps_array, detector_name
-    recv_time = time.time()
-    text  =  'FPS: '+str(fps)
+    #recv_time = time.time()
+    #fps_formatted  =  'FPS: '+str(fps)
     frame = (readb64(data_image))
-    imgencode = frame
-    #maintain fps
-    if cnt == 5:
-        all_faces_recognized.clear()
-        imgencode = face_recognition_single_frame(frame, detector_name)
-        #create new thread to process the frame
-        #t = Thread(target=face_recognition_single_frame, args=(frame))
-        #t.start()
-        #imgencode = frame
-        pass
-    if fps > 2:
-        #build detector model
-        detector = build_detector_model(detector_name)
-        # detect all the faces that are present in the frame
-        obj = face_detection(frame, detector, detector_name)
-        print(f'Num of faces detected: {len(obj)}')
-        plot_detected_faces(obj, frame)
 
-        #if all faces are recognized, then display the text
-        if all_faces_recognized:
-            cv2.putText(frame, str(all_faces_recognized), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1, cv2.LINE_AA)
-        imgencode = frame
+    #Add frame to the frames list
+    frames.append(frame)
 
-    imgencode = cv2.imencode('.jpeg', imgencode,[cv2.IMWRITE_JPEG_QUALITY,100])[1]
+    print(f'Length of raw frames list: {len(frames)}')
 
-        # base64 encode
+    #if frames processed is not empty
+    if len(frames_processed) > 0:
+        print(f'Length of processed frames list: {len(frames_processed)}')
+        frame = frames_processed.pop(0)
+        
+        imgencode = cv2.imencode('.jpg', frame)[1]
+        stringData = base64.b64encode(imgencode).decode('utf-8')
+        b64_src = 'data:image/jpeg;base64,'
+        stringData = b64_src + stringData
+        # emit the frame back
+        emit('response_back', stringData)
+        
+        '''
+        #calculate the fps
+        fps = 1/(recv_time - prev_recv_time)
+        fps_array.append(fps)
+        fps = round(moving_average(np.array(fps_array)),1)
+        prev_recv_time = recv_time
+        #print(fps_array)
+        cnt+=1
+        if cnt==30: #30:
+            fps_array=[fps]
+            cnt=0'''
 
-    stringData = base64.b64encode(imgencode).decode('utf-8')
-    b64_src = 'data:image/jpeg;base64,'
-    stringData = b64_src + stringData
-
-    # emit the frame back
-    emit('response_back', stringData)
-
-    fps = 1/(recv_time - prev_recv_time)
-    fps_array.append(fps)
-    fps = round(moving_average(np.array(fps_array)),1)
-    prev_recv_time = recv_time
-    #print(fps_array)
-    cnt+=1
-    if cnt==6: #30:
-        fps_array=[fps]
-        cnt=0
-        # create a separate thread to write the all_faces_recognized to a file
-        thread = Thread(target=write_to_file, args=(all_faces_recognized,))
-        thread.start()
-        # Reset the all_faces_recognized variable
-        #all_faces_recognized.clear()
-    
-    print(f'{text}')
-    print(all_faces_recognized)
 
 
 if __name__ == '__main__':
@@ -151,6 +146,11 @@ if __name__ == '__main__':
 
     #Following code is required to generate detector embedding
     create_detector_embeddings(detector_name)
+
+
+    #Start the face recognition thread
+    t = Thread(target=face_recognition)
+    t.start()
 
     #Run the app
     socketio.run(app,host='0.0.0.0',port=9999 ,debug=True)
