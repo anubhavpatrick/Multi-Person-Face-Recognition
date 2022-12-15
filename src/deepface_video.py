@@ -149,8 +149,6 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
         #add the name of the person to the set
         all_faces_recognized.add(face_recognized)
         
-        face_recognized = face_recognized+f' Similarity_Distance:{face_recognition_distance:.3f}'
-        
         if face_recognition_distance > 0.2:
             face_recognized = 'Unknown'
             #create a thread for storing unknowdfn faces
@@ -161,6 +159,11 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
         else:
             #set bounding box color to green
             color = (0, 255, 0)
+        
+        #draw rectangle on face
+        #Reference - https://github.com/serengil/deepface/blob/master/deepface/commons/realtime.py
+        x = obj[i][1][0]; y = obj[i][1][1]
+        w = obj[i][1][2]; h = obj[i][1][3]
         
         #write name of person above bounding box
         cv2.putText(frame, face_recognized, (x,y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)

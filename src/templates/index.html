@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Face Recognition Demo</title>
 
     <style>
     	#video {
@@ -19,15 +19,21 @@
 
 <body>
 
-    <div id="container">
-    <video autoplay playsinline id="videoElement"></video>
-    <canvas id="canvas"  width="400" height="300"></canvas>
+    <center> <h1>Face Recognition Demo</h1>
+    <div style="width: 100%;">
+        <div style="width: 50%; height: 100px; float: left;"> 
+            <div id="container">
+            <video autoplay playsinline id="videoElement"></video>
+            <canvas id="canvas"  width="400" height="300"></canvas>
+            </div>
+        </div>
+        <div style="margin-left: 50%; height: 100px;"> 
+            <div class = 'video'>
+                <img id="photo"  width="400"  height="300">
+            </div>
+        </div>
     </div>
-
-    <div class = 'video'>
-        <img id="photo"  width="400"  height="300">
-        <h1>Face Recognition Demo</h1>
-    </div>
+    </center>
 
     <script type="text/javascript" charset="utf-8">
       
@@ -73,7 +79,21 @@
 
     </script>
 
+    <!-- Button to download file from server-->
+    <!-- Place it at bottom of page-->
 
+    <style>
+    .fix {
+        width:100%;
+        position: absolute;
+        bottom:0;
+    }
+    </style>
+    <div class="fix">
+    <center>
+    <a id="download" href="/download"><img src="https://www.pngkit.com/png/full/100-1009816_png-images-buttons-download-red-download-button-png.png" alt="Download Report" height="100" width="400"></a>
+    </center>
+    </div>
  </body>
 
 </html>

@@ -6,7 +6,7 @@ library at the server back and the processed frames are sent back.
 
 import random
 from threading import Thread
-from flask import Flask, render_template
+from flask import Flask, render_template, Response
 from flask_socketio import SocketIO, emit
 import time
 import io
@@ -102,8 +102,8 @@ def image(data_image):
     #fps_formatted  =  'FPS: '+str(fps)
     frame = (readb64(data_image))
 
-    # if frames list is greater than 5, clear the backlog of frames
-    if len(frames) > 5:
+    # if frames list is greater than 3, clear the backlog of frames
+    if len(frames) > 3:
         frames.clear()
         
     #Add frame to the frames list
@@ -134,7 +134,18 @@ def image(data_image):
         if cnt==30: #30:
             fps_array=[fps]
             cnt=0'''
+        
 
+#flask function to send file to client
+#Reference - https://stackoverflow.com/questions/20646822/how-to-serve-static-files-in-flask
+@app.route('/download')
+def downloadFile ():
+    print("Download file")
+    #For windows you need to use drive name [ex: F:/Example.pdf]
+    path = "all_faces_recognized.txt"
+    return Response(open(path, 'rb').read(),
+                    mimetype='text/plain',
+                    headers={"Content-Disposition":"attachment;filename=all_faces_recognized.txt"})
 
 
 if __name__ == '__main__':
@@ -158,4 +169,4 @@ if __name__ == '__main__':
     t.start()
 
     #Run the app
-    socketio.run(app,host='0.0.0.0',port=9999 ,debug=True)
+    socketio.run(app,host='0.0.0.0',port=9999 ,debug=False)
