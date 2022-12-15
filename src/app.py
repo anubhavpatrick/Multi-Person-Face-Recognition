@@ -17,7 +17,7 @@ import numpy as np
 from engineio.payload import Payload 
 
 # import methods from deepface_video.py
-from deepface_video import face_recognition_single_frame, create_detector_embeddings
+from deepface_video import face_recognition_single_frame, create_detector_embeddings, build_detector_model, plot_detected_faces, face_detection
 
 # import all_faces_recognized from deepface_video.py
 from deepface_video import all_faces_recognized
@@ -72,24 +72,33 @@ def catch_frame(data):
 
 
 global fps,prev_recv_time,cnt,fps_array
-fps=6 #30
+fps=3 #30
 prev_recv_time = 0
 cnt=0
 fps_array=[0]
-detector = "mtcnn"
+detector_name = "mtcnn"
 
 
 @socketio.on('image')
 def image(data_image):
-    global fps,cnt, prev_recv_time,fps_array, detector
+    global fps,cnt, prev_recv_time,fps_array, detector_name
     recv_time = time.time()
     text  =  'FPS: '+str(fps)
     frame = (readb64(data_image))
 
     #maintain fps
     if fps > 3:
-        imgencode = face_recognition_single_frame(frame, detector)
+        imgencode = face_recognition_single_frame(frame, detector_name)
     else:
+        #build detector model
+        detector = build_detector_model(detector_name)
+        # detect all the faces that are present in the frame
+        obj = face_detection(frame, detector, detector_name)
+        plot_detected_faces(obj, frame)
+        
+        #if all faces are recognized, then display the text
+        if all_faces_recognized:
+            cv2.putText(frame, str(all_faces_recognized), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1, cv2.LINE_AA)
         imgencode = frame
         
     imgencode = cv2.imencode('.jpeg', imgencode,[cv2.IMWRITE_JPEG_QUALITY,100])[1]
@@ -108,12 +117,14 @@ def image(data_image):
     prev_recv_time = recv_time
     #print(fps_array)
     cnt+=1
-    if cnt==30:
+    if cnt==5: #30:
         fps_array=[fps]
         cnt=0
         # create a separate thread to write the all_faces_recognized to a file
         thread = Thread(target=write_to_file, args=(all_faces_recognized,))
         thread.start()
+        # Reset the all_faces_recognized variable
+        #all_faces_recognized.clear()
     
     print(f'{text}')
     print(all_faces_recognized)
@@ -132,7 +143,7 @@ if __name__ == '__main__':
         print("-----\nNot enough GPU hardware devices available. Code will run on CPU\n-----")
 
     #Following code is required to generate detector embedding
-    create_detector_embeddings(detector)
+    create_detector_embeddings(detector_name)
 
     #Run the app
-    socketio.run(app,host='0.0.0.0',port=9990 ,debug=True)
+    socketio.run(app,host='0.0.0.0',port=9999 ,debug=True)
