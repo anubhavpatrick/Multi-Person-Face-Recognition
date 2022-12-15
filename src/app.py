@@ -72,7 +72,7 @@ def catch_frame(data):
 
 
 global fps,prev_recv_time,cnt,fps_array
-fps=30
+fps=6 #30
 prev_recv_time = 0
 cnt=0
 fps_array=[0]
