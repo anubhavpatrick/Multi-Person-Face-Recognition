@@ -84,13 +84,14 @@ frames_processed = []
 
 def face_recognition():
     '''This function performs the face recognition on the frames received from the client'''
-    
+
+    global detector_name
+    detector_backend = build_detector_model(detector_name)
     while True:
         if len(frames) > 0:
             frame = frames.pop(0)
             # Reference -
-            frame_processed = face_recognition_single_frame(frame, detector_name)
-
+            frame_processed = face_recognition_single_frame(frame, detector_backend, detector_name)
             frames_processed.append(frame_processed)
 
 
@@ -101,6 +102,10 @@ def image(data_image):
     #fps_formatted  =  'FPS: '+str(fps)
     frame = (readb64(data_image))
 
+    # if frames list is greater than 5, clear the backlog of frames
+    if len(frames) > 5:
+        frames.clear()
+        
     #Add frame to the frames list
     frames.append(frame)
 

@@ -99,14 +99,14 @@ def plot_detected_faces(obj, frame):
     return frame
 
 
-def face_recognition_single_frame(frame, detector_name='mtcnn', db_path="dataset/train/pics/"):
+def face_recognition_single_frame(frame, detector_backend, detector_name, db_path="dataset/train/pics/"):
     '''Perform facial recognition on a single frame.
-    '''    
+    '''
     #build detector model
-    detector = build_detector_model(detector_name)
+    #detector = build_detector_model(detector_name)
 
     # detect all the faces that are present in the frame
-    obj = face_detection(frame, detector, detector_name)
+    obj = face_detection(frame, detector_backend, detector_name)
 
     # face_recognized will store the name of the person
     face_recognized = ''
@@ -163,13 +163,13 @@ def face_recognition_single_frame(frame, detector_name='mtcnn', db_path="dataset
             color = (0, 255, 0)
         
         #write name of person above bounding box
-        #cv2.putText(frame, face_recognized, (x,y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+        cv2.putText(frame, face_recognized, (x,y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
     plot_detected_faces(obj, frame)
 
     # if there is at least one face is recognized
-    if all_faces_recognized:
-        cv2.putText(frame, str(all_faces_recognized), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1, cv2.LINE_AA)
+    #if all_faces_recognized:
+    #    cv2.putText(frame, str(all_faces_recognized), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1, cv2.LINE_AA)
 
     return frame
 
@@ -177,6 +177,10 @@ def face_recognition_single_frame(frame, detector_name='mtcnn', db_path="dataset
 def face_recognition(video_capture, detector_name, db_path):
     '''Perform facial recognition on a video stream.
     '''
+
+    #build detector model
+    detector_backend = build_detector_model(detector_name)
+
     # Loop through video stream
     while True:
 
@@ -186,7 +190,7 @@ def face_recognition(video_capture, detector_name, db_path):
         #if frame is available
         if ret:
             # Perform facial recognition on a single frame
-            frame = face_recognition_single_frame(frame, detector_name, db_path)
+            frame = face_recognition_single_frame(frame, detector_backend, detector_name, db_path)
             
             print(type(frame))
             print(frame.shape)
