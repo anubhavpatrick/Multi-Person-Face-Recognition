@@ -4,6 +4,7 @@ to the server using the MediaRecorder() method. The video is then processed usin
 library at the server back and the processed frames are sent back.
 ''' 
 
+import os
 from threading import Thread
 from flask import Flask, render_template, Response
 from flask_socketio import SocketIO, emit
@@ -158,6 +159,9 @@ if __name__ == '__main__':
     #Following code is required to generate detector embedding
     create_detector_embeddings(detector_name)
 
+    #Delete the file if it exists
+    if os.path.exists('all_faces_recognized.txt'):
+        os.remove('all_faces_recognized.txt')
 
     #Start the face recognition thread
     t = Thread(target=face_recognition)

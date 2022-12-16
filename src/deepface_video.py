@@ -156,12 +156,12 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
 
                 #create a dictionary key for each face recognized
                 if face_recognized not in faces_recognized_dict.keys():
-                    faces_recognized_dict[face_recognized] = 1
+                    faces_recognized_dict[face_recognized] = [1, cnt] #cnt is the initial frame number the face was recognized
                 else:
-                    faces_recognized_dict[face_recognized] += 1
+                    faces_recognized_dict[face_recognized][0] += 1 #update how many times the face was recognized
 
                 #write the name of the person to a file
-                t = Thread(target=write_to_file, args=('all_faces_recognized.txt',faces_recognized_dict,))
+                t = Thread(target=write_to_file, args=('all_faces_recognized.txt',faces_recognized_dict, cnt))
                 t.start()
                 
                 if face_recognition_distance > 0.2:
