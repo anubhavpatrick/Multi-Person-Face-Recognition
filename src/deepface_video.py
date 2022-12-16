@@ -12,7 +12,7 @@ from util.generic_utilities import write_to_file
 
     
 #create an empty set containing all faces recognized
-all_faces_recognized = set() #global variable
+faces_recognized_dict = {} #global variable
 
 
 def format_name(name: str) -> str:
@@ -86,10 +86,10 @@ def plot_detected_faces(obj, frame):
     '''
     #Display time at top middle of frame
     current_time = time.strftime("%H:%M:%S", time.localtime())
-    cv2.putText(frame, current_time, (int(frame.shape[1]/2)-30, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(frame, current_time, (int(frame.shape[1]/2)-30, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
 
     #iterate through all the faces detected
-    color = (0, 255, 0) #green
+    color = (0, 255, 165) #orange
     for i in range(len(obj)):
         #draw rectangle on face
         #Reference - https://github.com/serengil/deepface/blob/master/deepface/commons/realtime.py
@@ -119,7 +119,7 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
     face_recognized = ''
 
     # all_faces_recognized is a global var containing all the faces recognized
-    global all_faces_recognized
+    global faces_recognized_dict
 
     # if there is at least one face in the frame
     if len(obj) > 0:
@@ -153,12 +153,15 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
                 # Get the formatted name to be displayed on video frame
                 # Get the name of the person in correct format
                 face_recognized = format_name(face_recognized)
-                
-                #add the name of the person to the set
-                all_faces_recognized.add(face_recognized)
+
+                #create a dictionary key for each face recognized
+                if face_recognized not in faces_recognized_dict.keys():
+                    faces_recognized_dict[face_recognized] = 1
+                else:
+                    faces_recognized_dict[face_recognized] += 1
 
                 #write the name of the person to a file
-                t = Thread(target=write_to_file, args=('all_faces_recognized.txt',all_faces_recognized,))
+                t = Thread(target=write_to_file, args=('all_faces_recognized.txt',faces_recognized_dict,))
                 t.start()
                 
                 if face_recognition_distance > 0.2:

@@ -4,11 +4,9 @@ to the server using the MediaRecorder() method. The video is then processed usin
 library at the server back and the processed frames are sent back.
 ''' 
 
-import random
 from threading import Thread
 from flask import Flask, render_template, Response
 from flask_socketio import SocketIO, emit
-import time
 import io
 from PIL import Image
 import base64,cv2
@@ -19,12 +17,6 @@ from engineio.payload import Payload
 
 # import methods from deepface_video.py
 from deepface_video import face_recognition_single_frame, create_detector_embeddings, build_detector_model
-
-# import all_faces_recognized from deepface_video.py
-from deepface_video import all_faces_recognized
-
-# import methods from generic_utilities.py
-from util.generic_utilities import write_to_file
 
 # to limit the size of the packets sent to the client
 Payload.max_decode_packets = 2048
@@ -116,7 +108,7 @@ def image(data_image):
         print(f'Length of processed frames list: {len(frames_processed)}')
         frame = frames_processed.pop(0)
         
-        imgencode = cv2.imencode('.jpg', frame)[1]
+        imgencode = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY,100])[1]
         stringData = base64.b64encode(imgencode).decode('utf-8')
         b64_src = 'data:image/jpeg;base64,'
         stringData = b64_src + stringData
