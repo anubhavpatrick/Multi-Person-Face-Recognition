@@ -1,11 +1,14 @@
 #A python module to capture a video stream and perform facial recognition on it.
 
 #import threading
+from threading import Thread
 import time
 
 import cv2
 from deepface import DeepFace
 from deepface.detectors import FaceDetector
+
+from util.generic_utilities import write_to_file
 
     
 #create an empty set containing all faces recognized
@@ -98,12 +101,16 @@ def plot_detected_faces(obj, frame):
 
     return frame
 
+cnt = 0
 
 def face_recognition_single_frame(frame, detector_backend, detector_name, db_path="dataset/train/pics/"):
     '''Perform facial recognition on a single frame.
     '''
     #build detector model
     #detector = build_detector_model(detector_name)
+
+    # to keep trak of frames
+    global cnt
 
     # detect all the faces that are present in the frame
     obj = face_detection(frame, detector_backend, detector_name)
@@ -126,53 +133,61 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
 
         recognizer_model = "VGG-Face" #set VGG-Face, Facenet, OpenFace, DeepFace, DeepID, Dlib, ArcFace or AgeNet
 
-        # Perform facial recognition by passing detected faces
-        # find() will return a dataframe with the name of the person and the similarity distance
-        recognized_faces_df = DeepFace.find(faces, model_name=recognizer_model, db_path = db_path, silent=True, enforce_detection=False, prog_bar=False)
-            
-    #iterate through all the faces detected
-    for i in range(len(obj)):
-        
-        #check if recognized_faces_df is a list containing dataframes
-        if isinstance(recognized_faces_df, list):
-            #get the name of the person
-            face_recognized = recognized_faces_df[i].iloc[0]['identity']
-            face_recognition_distance = recognized_faces_df[i].iloc[0]['VGG-Face_cosine']
-        else: #else recognized_faces_df is just a single dataframe
-            face_recognized = recognized_faces_df.iloc[0]['identity']
-            face_recognition_distance = recognized_faces_df.iloc[0]['VGG-Face_cosine']
+        if cnt%5 == 0:
+            # Perform facial recognition by passing detected faces
+            # find() will return a dataframe with the name of the person and the similarity distance
+            recognized_faces_df = DeepFace.find(faces, model_name=recognizer_model, db_path = db_path, silent=True, enforce_detection=False, prog_bar=False)
+                
+            #iterate through all the faces detected
+            for i in range(len(obj)):
+                
+                #check if recognized_faces_df is a list containing dataframes
+                if isinstance(recognized_faces_df, list):
+                    #get the name of the person
+                    face_recognized = recognized_faces_df[i].iloc[0]['identity']
+                    face_recognition_distance = recognized_faces_df[i].iloc[0]['VGG-Face_cosine']
+                else: #else recognized_faces_df is just a single dataframe
+                    face_recognized = recognized_faces_df.iloc[0]['identity']
+                    face_recognition_distance = recognized_faces_df.iloc[0]['VGG-Face_cosine']
 
-        # Get the formatted name to be displayed on video frame
-        # Get the name of the person in correct format
-        face_recognized = format_name(face_recognized)
-        
-        #add the name of the person to the set
-        all_faces_recognized.add(face_recognized)
-        
-        if face_recognition_distance > 0.2:
-            face_recognized = 'Unknown'
-            #create a thread for storing unknowdfn faces
-            #Uncomment the following line to store unknown faces
-            #threading.Thread(target=store_unknown_faces, args=(frame.copy(),current_time)).start()
-            #set bounding box color to red
-            color = (0, 0, 255)
-        else:
-            #set bounding box color to green
-            color = (0, 255, 0)
-        
-        #draw rectangle on face
-        #Reference - https://github.com/serengil/deepface/blob/master/deepface/commons/realtime.py
-        x = obj[i][1][0]; y = obj[i][1][1]
-        w = obj[i][1][2]; h = obj[i][1][3]
-        
-        #write name of person above bounding box
-        cv2.putText(frame, face_recognized, (x,y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                # Get the formatted name to be displayed on video frame
+                # Get the name of the person in correct format
+                face_recognized = format_name(face_recognized)
+                
+                #add the name of the person to the set
+                all_faces_recognized.add(face_recognized)
 
-    plot_detected_faces(obj, frame)
+                #write the name of the person to a file
+                t = Thread(target=write_to_file, args=('all_faces_recognized.txt',all_faces_recognized,))
+                t.start()
+                
+                if face_recognition_distance > 0.2:
+                    face_recognized = 'Unknown'
+                    #create a thread for storing unknowdfn faces
+                    #Uncomment the following line to store unknown faces
+                    #threading.Thread(target=store_unknown_faces, args=(frame.copy(),current_time)).start()
+                    #set bounding box color to red
+                    #color = (0, 0, 255)
+                #else:
+                    #set bounding box color to green
+                    #color = (0, 255, 0)
+                    #pass
+                
+                #draw rectangle on face
+                #Reference - https://github.com/serengil/deepface/blob/master/deepface/commons/realtime.py
+                #x = obj[i][1][0]; y = obj[i][1][1]
+                #w = obj[i][1][2]; h = obj[i][1][3]
+                
+                #write name of person above bounding box
+                #cv2.putText(frame, face_recognized, (x,y-5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+        
+        plot_detected_faces(obj, frame)
 
     # if there is at least one face is recognized
     #if all_faces_recognized:
     #    cv2.putText(frame, str(all_faces_recognized), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1, cv2.LINE_AA)
+
+    cnt+=1 #increment frame count
 
     return frame
 

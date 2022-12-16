@@ -18,7 +18,7 @@ import numpy as np
 from engineio.payload import Payload 
 
 # import methods from deepface_video.py
-from deepface_video import face_recognition_single_frame, create_detector_embeddings, build_detector_model, plot_detected_faces, face_detection
+from deepface_video import face_recognition_single_frame, create_detector_embeddings, build_detector_model
 
 # import all_faces_recognized from deepface_video.py
 from deepface_video import all_faces_recognized
@@ -72,10 +72,10 @@ def catch_frame(data):
     emit('response_back', data)  
 
 
-global fps,prev_recv_time,cnt,fps_array
+'''global fps,prev_recv_time,cnt,fps_array
 fps=3 #30
 prev_recv_time = 0
-cnt=0
+cnt=0'''
 fps_array=[0]
 detector_name = "opencv"
 frames = []
@@ -129,10 +129,13 @@ def image(data_image):
         fps_array.append(fps)
         fps = round(moving_average(np.array(fps_array)),1)
         prev_recv_time = recv_time
-        #print(fps_array)
-        cnt+=1
-        if cnt==30: #30:
-            fps_array=[fps]
+        #print(fps_array)'''
+        '''cnt+=1
+        if cnt==10: #30:
+            print(f'Count is {cnt}')
+            #write the faces recognized to a file using threads
+            t = Thread(target=write_to_file, args=('all_faces_recognized.txt',all_faces_recognized,))
+            t.start()
             cnt=0'''
         
 
