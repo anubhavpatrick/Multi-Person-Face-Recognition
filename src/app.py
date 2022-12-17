@@ -4,10 +4,10 @@ to the server using the MediaRecorder() method. The video is then processed usin
 library at the server back and the processed frames are sent back.
 ''' 
 
+import os
 from threading import Thread
-from flask import Flask, render_template
+from flask import Flask, render_template, Response
 from flask_socketio import SocketIO, emit
-import time
 import io
 from PIL import Image
 import base64,cv2
@@ -17,13 +17,7 @@ import numpy as np
 from engineio.payload import Payload 
 
 # import methods from deepface_video.py
-from deepface_video import face_recognition_single_frame, create_detector_embeddings
-
-# import all_faces_recognized from deepface_video.py
-from deepface_video import all_faces_recognized
-
-# import methods from generic_utilities.py
-from util.generic_utilities import write_to_file
+from deepface_video import face_recognition_single_frame, create_detector_embeddings, build_detector_model
 
 # to limit the size of the packets sent to the client
 Payload.max_decode_packets = 2048
@@ -71,52 +65,90 @@ def catch_frame(data):
     emit('response_back', data)  
 
 
-global fps,prev_recv_time,cnt,fps_array
-fps=6 #30
+'''global fps,prev_recv_time,cnt,fps_array
+fps=3 #30
 prev_recv_time = 0
-cnt=0
+cnt=0'''
 fps_array=[0]
-detector = "mtcnn"
+detector_name = "ssd"
+frames = []
+frames_processed = []
 
+
+def face_recognition():
+    '''This function performs the face recognition on the frames received from the client'''
+
+    global detector_name
+    detector_backend = build_detector_model(detector_name)
+    while True:
+        if len(frames) > 0:
+            frame = frames.pop(0)
+            # Reference -
+            try:
+                frame_processed = face_recognition_single_frame(frame, detector_backend, detector_name)
+                frames_processed.append(frame_processed)
+            except Exception as e:
+                print(f'Error in face recognition - {e}')
+                return
 
 @socketio.on('image')
 def image(data_image):
-    global fps,cnt, prev_recv_time,fps_array, detector
-    recv_time = time.time()
-    text  =  'FPS: '+str(fps)
+    global fps,cnt, prev_recv_time,fps_array, detector_name
+    #recv_time = time.time()
+    #fps_formatted  =  'FPS: '+str(fps)
     frame = (readb64(data_image))
 
-    #maintain fps
-    if fps > 3:
-        imgencode = face_recognition_single_frame(frame, detector)
-    else:
-        imgencode = frame
+    # if frames list is greater than 3, clear the backlog of frames
+    if len(frames) > 3:
+        frames.clear()
         
-    imgencode = cv2.imencode('.jpeg', imgencode,[cv2.IMWRITE_JPEG_QUALITY,100])[1]
+    #Add frame to the frames list
+    frames.append(frame)
 
-    # base64 encode
-    stringData = base64.b64encode(imgencode).decode('utf-8')
-    b64_src = 'data:image/jpeg;base64,'
-    stringData = b64_src + stringData
+    print(f'Length of raw frames list: {len(frames)}')
 
-    # emit the frame back
-    emit('response_back', stringData)
-    
-    fps = 1/(recv_time - prev_recv_time)
-    fps_array.append(fps)
-    fps = round(moving_average(np.array(fps_array)),1)
-    prev_recv_time = recv_time
-    #print(fps_array)
-    cnt+=1
-    if cnt==30:
-        fps_array=[fps]
-        cnt=0
-        # create a separate thread to write the all_faces_recognized to a file
-        thread = Thread(target=write_to_file, args=(all_faces_recognized,))
-        thread.start()
-    
-    print(f'{text}')
-    print(all_faces_recognized)
+    #if frames processed is not empty
+    if len(frames_processed) > 0:
+        print(f'Length of processed frames list: {len(frames_processed)}')
+        frame = frames_processed.pop(0)
+        
+        imgencode = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY,100])[1]
+        stringData = base64.b64encode(imgencode).decode('utf-8')
+        b64_src = 'data:image/jpeg;base64,'
+        stringData = b64_src + stringData
+        # emit the frame back
+        emit('response_back', stringData)
+        
+        '''
+        #calculate the fps
+        fps = 1/(recv_time - prev_recv_time)
+        fps_array.append(fps)
+        fps = round(moving_average(np.array(fps_array)),1)
+        prev_recv_time = recv_time
+        #print(fps_array)'''
+        '''cnt+=1
+        if cnt==10: #30:
+            print(f'Count is {cnt}')
+            #write the faces recognized to a file using threads
+            t = Thread(target=write_to_file, args=('all_faces_recognized.txt',all_faces_recognized,))
+            t.start()
+            cnt=0'''
+        
+
+#flask function to send file to client
+#Reference - https://stackoverflow.com/questions/20646822/how-to-serve-static-files-in-flask
+@app.route('/download')
+def downloadFile ():
+    print("Download file")
+    #For windows you need to use drive name [ex: F:/Example.pdf]
+    #check if file exists
+    if os.path.exists('all_faces_recognized.txt'):
+        path = "all_faces_recognized.txt"
+        return Response(open(path, 'rb').read(),
+                        mimetype='text/plain',
+                        headers={"Content-Disposition":"attachment;filename=all_faces_recognized.txt"})
+    else:
+        return Response("File not found", status=404)
 
 
 if __name__ == '__main__':
@@ -132,7 +164,15 @@ if __name__ == '__main__':
         print("-----\nNot enough GPU hardware devices available. Code will run on CPU\n-----")
 
     #Following code is required to generate detector embedding
-    create_detector_embeddings(detector)
+    create_detector_embeddings(detector_name)
 
-    #Run the app
-    socketio.run(app,host='0.0.0.0',port=9990 ,debug=True)
+    #Delete the file if it exists
+    if os.path.exists('all_faces_recognized.txt'):
+        os.remove('all_faces_recognized.txt')
+
+    #Start the face recognition thread
+    t = Thread(target=face_recognition)
+    t.start()
+
+    #Run the app on all ips on port 9999
+    socketio.run(app,host='0.0.0.0',port=9999 ,debug=False)

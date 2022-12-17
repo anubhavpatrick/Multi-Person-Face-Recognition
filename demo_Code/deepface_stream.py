@@ -4,4 +4,4 @@
 from deepface import DeepFace
 
 
-DeepFace.stream("dataset/train/pics/", enable_face_analysis=False, time_threshold=1)
+DeepFace.stream("dataset/train/pics/", enable_face_analysis=True, time_threshold=1)
