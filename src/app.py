@@ -70,7 +70,7 @@ fps=3 #30
 prev_recv_time = 0
 cnt=0'''
 fps_array=[0]
-detector_name = "opencv"
+detector_name = "ssd"
 frames = []
 frames_processed = []
 
@@ -84,9 +84,12 @@ def face_recognition():
         if len(frames) > 0:
             frame = frames.pop(0)
             # Reference -
-            frame_processed = face_recognition_single_frame(frame, detector_backend, detector_name)
-            frames_processed.append(frame_processed)
-
+            try:
+                frame_processed = face_recognition_single_frame(frame, detector_backend, detector_name)
+                frames_processed.append(frame_processed)
+            except Exception as e:
+                print(f'Error in face recognition - {e}')
+                return
 
 @socketio.on('image')
 def image(data_image):

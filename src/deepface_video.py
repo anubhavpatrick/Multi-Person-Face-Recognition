@@ -112,6 +112,9 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
     # to keep trak of frames
     global cnt
 
+    #resize frame to 224x224
+    frame = cv2.resize(frame, (224, 224))
+
     # detect all the faces that are present in the frame
     obj = face_detection(frame, detector_backend, detector_name)
 
@@ -134,7 +137,7 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
         recognizer_model = "VGG-Face" #set VGG-Face, Facenet, OpenFace, DeepFace, DeepID, Dlib, ArcFace or AgeNet
 
         if cnt%5 == 0:
-            # Perform facial recognition by passing detected faces
+            # Perform facial recognition by passing detected faces on every fifth processed frame
             # find() will return a dataframe with the name of the person and the similarity distance
             recognized_faces_df = DeepFace.find(faces, model_name=recognizer_model, db_path = db_path, silent=True, enforce_detection=False, prog_bar=False)
                 
@@ -144,15 +147,28 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
                 #check if recognized_faces_df is a list containing dataframes
                 if isinstance(recognized_faces_df, list):
                     #get the name of the person
-                    face_recognized = recognized_faces_df[i].iloc[0]['identity']
-                    face_recognition_distance = recognized_faces_df[i].iloc[0]['VGG-Face_cosine']
+                    if recognized_faces_df[i].empty:
+                        #no faces detected. Increase count and return
+                        cnt+=1
+                        return
+                    else:
+                        face_recognized = recognized_faces_df[i].iloc[0]['identity']
+                        face_recognition_distance = recognized_faces_df[i].iloc[0]['VGG-Face_cosine']
                 else: #else recognized_faces_df is just a single dataframe
-                    face_recognized = recognized_faces_df.iloc[0]['identity']
-                    face_recognition_distance = recognized_faces_df.iloc[0]['VGG-Face_cosine']
+                    if recognized_faces_df.empty:
+                        #no faces detected. Increase count and return
+                        cnt+=1
+                        return
+                    else:
+                        face_recognized = recognized_faces_df.iloc[0]['identity']
+                        face_recognition_distance = recognized_faces_df.iloc[0]['VGG-Face_cosine']
 
-                # Get the formatted name to be displayed on video frame
-                # Get the name of the person in correct format
-                face_recognized = format_name(face_recognized)
+                if face_recognition_distance > 0.39:
+                    face_recognized = 'Unknown'
+                else:
+                    # Get the formatted name to be displayed on video frame
+                    # Get the name of the person in correct format
+                    face_recognized = format_name(face_recognized)
 
                 #create a dictionary key for each face recognized
                 if face_recognized not in faces_recognized_dict.keys():
@@ -164,9 +180,7 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
                 t = Thread(target=write_to_file, args=('all_faces_recognized.txt',faces_recognized_dict, cnt))
                 t.start()
                 
-                if face_recognition_distance > 0.2:
-                    face_recognized = 'Unknown'
-                    #create a thread for storing unknowdfn faces
+                #create a thread for storing unknown faces
                     #Uncomment the following line to store unknown faces
                     #threading.Thread(target=store_unknown_faces, args=(frame.copy(),current_time)).start()
                     #set bounding box color to red
