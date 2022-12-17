@@ -97,7 +97,7 @@ def plot_detected_faces(obj, frame):
         w = obj[i][1][2]; h = obj[i][1][3]
         
         # draw bounding box on each face detected
-        cv2.rectangle(frame, (x,y), (x+w,y+h), color, 2) #draw rectangle on main image
+        cv2.rectangle(frame, (x,y), (x+w,y+h), color, 1) #draw rectangle on main image
 
     return frame
 
