@@ -141,10 +141,14 @@ def image(data_image):
 def downloadFile ():
     print("Download file")
     #For windows you need to use drive name [ex: F:/Example.pdf]
-    path = "all_faces_recognized.txt"
-    return Response(open(path, 'rb').read(),
-                    mimetype='text/plain',
-                    headers={"Content-Disposition":"attachment;filename=all_faces_recognized.txt"})
+    #check if file exists
+    if os.path.exists('all_faces_recognized.txt'):
+        path = "all_faces_recognized.txt"
+        return Response(open(path, 'rb').read(),
+                        mimetype='text/plain',
+                        headers={"Content-Disposition":"attachment;filename=all_faces_recognized.txt"})
+    else:
+        return Response("File not found", status=404)
 
 
 if __name__ == '__main__':
