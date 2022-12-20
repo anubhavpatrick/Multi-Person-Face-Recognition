@@ -91,6 +91,7 @@ def face_recognition():
                 print(f'Error in face recognition - {e}')
                 return
 
+
 @socketio.on('image')
 def image(data_image):
     global fps,cnt, prev_recv_time,fps_array, detector_name

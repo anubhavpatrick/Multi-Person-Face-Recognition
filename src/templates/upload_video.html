@@ -1,0 +1,13 @@
+<!-- A simple html web page to upload a video file to the server-->
+
+<!-- Path: src/templates/upload_video.html -->
+
+<html>
+  <body>
+    <form action="/upload_video" method="post" enctype="multipart/form-data">
+      <label for="file">Select a video file:</label>
+      <input type="file" id="file" name="file" accept="video/*">
+      <input type="submit" value="Upload">
+    </form>
+  </body>
+</html>

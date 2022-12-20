@@ -49,7 +49,6 @@
 
         video.width = 400;
         video.height = 300; 
-    
 
         if (navigator.mediaDevices.getUserMedia) {
             navigator.mediaDevices.getUserMedia({ video: true })
@@ -61,6 +60,8 @@
 
             });
         }
+
+        //access video stream from web resource
 
         const FPS = 3;
         setInterval(() => {
