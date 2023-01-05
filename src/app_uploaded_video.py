@@ -13,15 +13,18 @@ from werkzeug.utils import secure_filename
 
 from deepface_video import build_detector_model, face_recognition_single_frame
 
+#set parameters for flask app
+from param import upload_folder, detector_name, db_path
+
 #Set the path of uploaded video
 app_uploaded_video = Flask(__name__)
-app_uploaded_video.config['UPLOAD_FOLDER'] = 'uploaded_video'
+app_uploaded_video.config['UPLOAD_FOLDER'] = upload_folder
 
 
 #Set parameters for face recognition
-detector_name = 'opencv'
+detector_name = detector_name
 detector_backend = build_detector_model(detector_name)
-db_path = 'dataset/train/pics/' #path where images of candidates are stored
+db_path = db_path #path where images of candidates are stored
 
 
 #flask function to render the html page
@@ -43,7 +46,9 @@ def upload_video():
         if file.filename == '':
             return jsonify({'status': 'error', 'message': 'No selected file'})
         if file:
-            filename = secure_filename(file.filename)
+            #change the filename to a videp.mp4
+            #Files in multiple iterations will be overwritten
+            filename = secure_filename('video.mp4')
             file.save(os.path.join(app_uploaded_video.config['UPLOAD_FOLDER'], filename))
             return jsonify({'status': 'success', 'message': 'File uploaded successfully'})
 
@@ -68,7 +73,7 @@ def process_video():
     '''
     cnt = 0
     # Capture video stream
-    vid_capture = cv2.VideoCapture('dataset/train/videos/Abesit_Final_Year_Non_Stabalized/video_5.mp4')
+    vid_capture = cv2.VideoCapture(upload_folder + 'video.mp4')
 
     #set fps
     vid_capture.set(cv2.CAP_PROP_FPS, 5)
@@ -86,7 +91,7 @@ def process_video():
         print(frame.shape)
 
         #rotate frame if it is wrongly rotated
-        frame = rotate_frame(frame)
+        #frame = rotate_frame(frame)
 
         # Perform facial recognition on frame
         processed_frame = face_recognition_single_frame(frame, detector_backend, detector_name, db_path)
@@ -112,5 +117,5 @@ def return_result():
 
 
 if __name__ == '__main__':
-    #app_uploaded_video.run(host='0.0.0.0', port=9999, debug=True)
+    app_uploaded_video.run(host='0.0.0.0', port=9999, debug=True)
     process_video()

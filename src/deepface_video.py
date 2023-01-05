@@ -11,7 +11,7 @@ from deepface.detectors import FaceDetector
 from util.generic_utilities import write_to_file
 
 #Import parameters
-from param import detector_name, db_path, threshold, unknown_faces_path
+from param import detector_name, db_path, threshold, unknown_faces_path, recognizer_name
 
 
 #create an empty set containing all faces recognized
@@ -104,8 +104,8 @@ def plot_detected_faces(obj, frame):
 
     return frame
 
-cnt = 0
 
+cnt = 0 #global variable to keep track of frames
 def face_recognition_single_frame(frame, detector_backend, detector_name, db_path="dataset/train/pics/"):
     '''Perform facial recognition on a single frame.
     '''
@@ -137,7 +137,7 @@ def face_recognition_single_frame(frame, detector_backend, detector_name, db_pat
         for i in range(1, len(obj)):
             faces.append(obj[i][0])
 
-        recognizer_model = "VGG-Face" #set VGG-Face, Facenet, OpenFace, DeepFace, DeepID, Dlib, ArcFace or AgeNet
+        recognizer_model = recognizer_name #set VGG-Face, Facenet, OpenFace, DeepFace, DeepID, Dlib, ArcFace or AgeNet
 
         if cnt >= 0:
             # Perform facial recognition by passing detected faces on every fifth processed frame

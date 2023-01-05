@@ -4,7 +4,7 @@
 detector_name = 'opencv' #set opencv, ssd, dlib, mtcnn or retinaface
 
 #name of face recognizer
-recognizer_name = 'facenet' #set facenet, vggface, openface, deepface, deepid, dlib, arcface
+recognizer_name = 'VGG-Face' #set facenet, vggface, openface, deepface, deepid, dlib, arcface
 
 #db path
 db_path = 'dataset/train/pics/' #path where images of candidates are stored
@@ -16,7 +16,7 @@ upload_folder = 'uploaded_video/'
 processed_folder = 'results/'
 
 # confidence threshold
-threshold = 0.2
+threshold = 0.3
 
 #path to save unknown faces
 unknown_faces_path = 'results/unknown_faces/'
